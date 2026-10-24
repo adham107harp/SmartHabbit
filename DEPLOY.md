@@ -38,7 +38,6 @@ Useful one-offs:
 
 ```bash
 docker compose exec backend npm run punish-now          # run the daily punishment sweep manually
-docker compose exec backend npm run reset-test-users    # reset test passwords (writes a local, git-ignored USERS.md)
 docker compose exec db psql -U smarthabbit -d smarthabbit   # poke around in postgres
 ```
 
@@ -150,6 +149,5 @@ docker compose exec backend npm run seed
 docker compose exec backend npm run seed:badges
 
 # user maintenance
-docker compose exec backend npm run reset-test-users
 docker compose exec backend npm run punish-now
 ```

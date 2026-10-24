@@ -54,5 +54,3 @@ backend/uploads/
 *.tmp
 .tmp/
 
-# --- Generated local files ---
-USERS.md
