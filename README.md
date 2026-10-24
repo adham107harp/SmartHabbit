@@ -55,7 +55,7 @@ This is a university project. The whole thing — backend and frontend — runs 
 │   ├── css/                (base.css + one stylesheet per page)
 │   └── js/                 (api.js + auth-guard.js + ui.js + one script per page)
 │
-├── documentation/      ← Spec docs, security audit, full technical PDF, slides
+├── documentation/      ← Specification, architecture, DB schema, technical PDF, slides
 ├── diagrams/           ← ER diagram + mapping diagram (PNG)
 └── DEPLOY.md           ← Docker / deployment notes
 ```
