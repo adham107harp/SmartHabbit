@@ -38,7 +38,7 @@ Useful one-offs:
 
 ```bash
 docker compose exec backend npm run punish-now          # run the daily punishment sweep manually
-docker compose exec backend npm run reset-test-users    # reset test passwords + regenerate USERS.md
+docker compose exec backend npm run reset-test-users    # reset test passwords (writes a local, git-ignored USERS.md)
 docker compose exec db psql -U smarthabbit -d smarthabbit   # poke around in postgres
 ```
 
