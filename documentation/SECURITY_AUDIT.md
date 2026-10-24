@@ -65,7 +65,7 @@ The global `/api/` limiter (500 req / 15 min) let an attacker try 500 passwords 
 
 ### 🟢 .env warning
 
-**File:** [SUMMARY.md §8](#8-deployment-checklist)
+**File:** [SECURITY_AUDIT.md §8](#8-deployment-checklist)
 
 `backend/.env` ships with a placeholder `JWT_SECRET=dev-jwt-secret-change-me-in-production`. The repo's `.gitignore` already excludes `.env`, but if you push this project anywhere public, **rotate that secret first** (see deployment checklist).
 
@@ -193,4 +193,4 @@ Before pushing this to a public host:
 
 **Project root:**
 - [README.md](README.md) — testing section, v4 hardening notes, chat endpoints in API table.
-- [SUMMARY.md](SUMMARY.md) — this file.
+- [SECURITY_AUDIT.md](SECURITY_AUDIT.md) — this file.
