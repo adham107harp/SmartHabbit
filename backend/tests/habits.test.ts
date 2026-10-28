@@ -58,7 +58,7 @@ describe('POST /api/habits/:id/log — log + reward', () => {
     expect(log.body.data.streak.newStreak).toBe(1);
   });
 
-  it('returns 409 HABIT_ALREADY_LOGGED on duplicate same-day log', async () => {
+  it('returns 409 HABIT_ALREADY_AT_TARGET once today\'s target is reached', async () => {
     const u = await makeUser();
     const h = await request(app)
       .post('/api/habits')
@@ -76,7 +76,34 @@ describe('POST /api/habits/:id/log — log + reward', () => {
       .send({ value: 1 });
 
     expect(dup.status).toBe(409);
-    expect(dup.body.code).toBe('HABIT_ALREADY_LOGGED');
+    expect(dup.body.code).toBe('HABIT_ALREADY_AT_TARGET');
+  });
+
+  it('adds up several logs toward the target and pays out only on the one that reaches it', async () => {
+    const u = await makeUser();
+    const h = await request(app)
+      .post('/api/habits')
+      .set(authHeader(u))
+      .send({ name: 'Water', goal_type: 'daily', difficulty: 'easy', target_value: 3 });
+    const habitId = h.body.data.habit.id;
+    const logOnce = () => request(app)
+      .post(`/api/habits/${habitId}/log`)
+      .set(authHeader(u))
+      .send({ value: 1 });
+
+    const first = await logOnce();
+    const second = await logOnce();
+    const third = await logOnce();
+    const fourth = await logOnce();
+
+    expect(first.status).toBe(200);
+    expect(first.body.data.habitCompletion.xpEarned).toBe(0);
+    expect(second.status).toBe(200);
+    expect(second.body.data.habitCompletion.xpEarned).toBe(0);
+    expect(third.status).toBe(200);
+    expect(third.body.data.habitCompletion.xpEarned).toBeGreaterThan(0);
+    expect(fourth.status).toBe(409);
+    expect(fourth.body.code).toBe('HABIT_ALREADY_AT_TARGET');
   });
 });
 
