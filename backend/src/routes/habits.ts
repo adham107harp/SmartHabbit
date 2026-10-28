@@ -265,7 +265,8 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) =>
  * v2: All four services share one parent transaction so the entire log
  * is atomic (XP, streak, badges, challenges all commit together or not at all).
  *
- * Duplicate same-day logs are rejected with 409 HABIT_ALREADY_LOGGED.
+ * Several logs per day add up toward the habit's target_value. Once today's
+ * target is reached, further logs are rejected with 409 HABIT_ALREADY_AT_TARGET.
  */
 router.post(
   '/:id/log',
@@ -330,7 +331,13 @@ router.delete(
     try {
       const result = await db.transaction(async (client) => {
         const lastLog = await client.query(
-          `SELECT id, xp_earned, coins_earned, created_at, logged_date
+          // The age is computed in the database. created_at is a TIMESTAMP
+          // without time zone, so turning it into a JS Date would read it in
+          // the Node process's time zone; if that differs from the database's
+          // (e.g. Node in Africa/Cairo, Postgres in UTC) every log looks hours
+          // old and undo is always rejected.
+          `SELECT id, xp_earned, coins_earned, logged_date,
+                  EXTRACT(EPOCH FROM (LOCALTIMESTAMP - created_at)) * 1000 AS age_ms
              FROM habit_logs
             WHERE habit_id = $1 AND user_id = $2
             ORDER BY created_at DESC
@@ -340,7 +347,7 @@ router.delete(
         if (lastLog.rows.length === 0) throw new NoLogToUndoError();
 
         const log = lastLog.rows[0];
-        const ageMs = Date.now() - new Date(log.created_at).getTime();
+        const ageMs = Number(log.age_ms);
         if (ageMs > UNDO_WINDOW_MS) throw new UndoWindowExpiredError();
 
         // Delete the log row first
