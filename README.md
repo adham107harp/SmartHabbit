@@ -55,9 +55,9 @@ This is a university project. The whole thing — backend and frontend — runs 
 │   ├── css/                (base.css + one stylesheet per page)
 │   └── js/                 (api.js + auth-guard.js + ui.js + one script per page)
 │
-├── documentation/      ← Original spec docs (markdown)
-├── Digrams/            ← ER diagram + mapping diagram (PNG)
-└── habit_tracker_docs.pdf  ← Full technical documentation
+├── documentation/      ← Specification, architecture, DB schema, technical PDF, slides
+├── diagrams/           ← ER diagram + mapping diagram (PNG)
+└── DEPLOY.md           ← Docker / deployment notes
 ```
 
 ## Run it
