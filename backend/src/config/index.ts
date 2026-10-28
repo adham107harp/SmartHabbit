@@ -5,6 +5,17 @@ dotenv.config({
   path: path.resolve(__dirname, '../../.env')
 });
 
+const DEV_JWT_SECRET = 'change-me-in-production';
+
+// Anyone who knows the fallback secret can sign their own tokens and log in
+// as any user, so production must never start without a real one.
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  throw new Error(
+    'JWT_SECRET must be set when NODE_ENV=production. ' +
+    'Generate one with: openssl rand -hex 32'
+  );
+}
+
 export const config = {
   app: {
     env: process.env.NODE_ENV || 'development',
@@ -21,7 +32,7 @@ export const config = {
     ssl: process.env.DB_SSL === 'true'
   },
   jwt: {
-    secret: process.env.JWT_SECRET || 'change-me-in-production',
+    secret: process.env.JWT_SECRET || DEV_JWT_SECRET,
     expiry: process.env.JWT_EXPIRY || '24h',
     refreshExpiry: process.env.REFRESH_TOKEN_EXPIRY || '7d'
   },
