@@ -205,8 +205,13 @@ router.get('/search', authMiddleware, async (req: AuthRequest, res: Response) =>
 /**
  * GET /api/users/:id/stats - Get user stats
  */
-router.get('/:id/stats', async (req: AuthRequest, res: Response) => {
+router.get('/:id/stats', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
+    // Stats include private fields (email, coins); only the owner may read them.
+    if (req.params.id !== req.userId) {
+      res.status(403).json({ success: false, message: 'You can only view your own stats' });
+      return;
+    }
     const stats = await gamificationEngine.getUserStats(req.params.id);
 
     res.json({

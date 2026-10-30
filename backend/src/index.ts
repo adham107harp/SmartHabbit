@@ -10,7 +10,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { config } from './config';
 import { db } from './config/database';
 import { errorHandler, notFoundHandler } from './middleware/auth';
-import { verifyToken } from './utils/auth';
+import { verifyAccessToken } from './utils/auth';
 
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
@@ -138,7 +138,7 @@ export function setupSockets(httpServer: http.Server): SocketIOServer {
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token || socket.handshake.query?.token;
     if (!token || typeof token !== 'string') return next(new Error('No token'));
-    const decoded = verifyToken(token);
+    const decoded = verifyAccessToken(token);
     if (!decoded?.userId) return next(new Error('Invalid token'));
     (socket.data as any).userId = decoded.userId;
     next();
