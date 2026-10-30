@@ -12,7 +12,7 @@
     "punish-now": "ts-node scripts/punish_now.ts",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
-    "test": "jest --coverage"
+    "test": "jest --coverage --runInBand"
   },
   "keywords": [
     "gamification",
