@@ -23,6 +23,7 @@ Updated each automated run. Tests: Postgres 16 `smarthabbit_test`, run under `TZ
 12. API docs (OpenAPI), README refresh, frontend polish.
 
 ## Risks / notes
+- Test suites share one DB and TRUNCATE in beforeEach, so jest must run serially (`npm test` now uses `--runInBand`; found when CI parallel workers failed). Longer term: per-worker schemas or databases.
 - Admin bootstrap still grants `is_admin` to whoever first registers an allowlisted email (emails unverified). Set `ADMIN_EMAILS` in production and register that account first, or move to DB-only admin grants.
 - Migration 021 only emits a NOTICE (and is still recorded as applied) if case-variant duplicate emails exist; operator must dedupe and create `users_email_lower_key` manually.
 - `/users/:id/stats` is now owner-only; frontend only calls it for the current user (verified in `frontend/js/profile.js`).
