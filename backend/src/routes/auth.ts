@@ -29,7 +29,9 @@ router.post(
   }),
   async (req: Request, res: Response) => {
     try {
-      const { username, email, password } = req.body;
+      const { username, password } = req.body;
+      // Emails are case-insensitive: normalise so the allowlist/duplicate checks can't be bypassed by casing.
+      const email = String(req.body.email).trim().toLowerCase();
 
       // Validate email
       if (!validateEmail(email)) {
@@ -59,7 +61,7 @@ router.post(
 
       // Check if user exists
       const existingUser = await db.queryOne(
-        'SELECT id FROM users WHERE username = $1 OR email = $2',
+        'SELECT id FROM users WHERE username = $1 OR LOWER(email) = $2',
         [username, email]
       );
 
@@ -112,11 +114,12 @@ router.post(
   }),
   async (req: Request, res: Response) => {
     try {
-      const { email, password } = req.body;
+      const { password } = req.body;
+      const email = String(req.body.email).trim().toLowerCase();
 
       // Get user
       const user = await db.queryOne(
-        'SELECT * FROM users WHERE email = $1 AND deleted_at IS NULL',
+        'SELECT * FROM users WHERE LOWER(email) = $1 AND deleted_at IS NULL',
         [email]
       );
 
@@ -173,14 +176,24 @@ router.post('/refresh', async (req: Request, res: Response) => {
 
     // Verify refresh token
     const { verifyToken } = require('../utils/auth');
-    const decoded = verifyToken(refreshToken);
+    const decoded = typeof refreshToken === 'string' ? verifyToken(refreshToken) : null;
 
     if (!decoded || decoded.type !== 'refresh') {
       res.status(401).json({ success: false, message: 'Invalid refresh token' });
       return;
     }
 
-    const accessToken = generateToken({ userId: decoded.userId });
+    // Deleted/unknown accounts must not be able to mint new tokens.
+    const account = await db.queryOne(
+      'SELECT id, username FROM users WHERE id = $1 AND deleted_at IS NULL',
+      [decoded.userId]
+    );
+    if (!account) {
+      res.status(401).json({ success: false, message: 'Invalid refresh token' });
+      return;
+    }
+
+    const accessToken = generateToken({ userId: account.id, username: account.username });
     const newRefreshToken = generateRefreshToken(decoded.userId);
 
     res.json({
