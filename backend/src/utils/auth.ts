@@ -25,7 +25,7 @@ export function generateToken(payload: object, expiryOverride?: string): string 
   const options: SignOptions = {
     expiresIn: (expiryOverride || config.jwt.expiry) as SignOptions['expiresIn']
   };
-  return jwt.sign(payload, config.jwt.secret as jwt.Secret, options);
+  return jwt.sign(payload, config.jwt.secret as jwt.Secret, { ...options, algorithm: 'HS256' });
 }
 
 /**
@@ -33,7 +33,8 @@ export function generateToken(payload: object, expiryOverride?: string): string 
  */
 export function generateRefreshToken(userId: string): string {
   const options: SignOptions = {
-    expiresIn: config.jwt.refreshExpiry as SignOptions['expiresIn']
+    expiresIn: config.jwt.refreshExpiry as SignOptions['expiresIn'],
+    algorithm: 'HS256'
   };
   return jwt.sign({ userId, type: 'refresh' }, config.jwt.secret as jwt.Secret, options);
 }
@@ -43,10 +44,21 @@ export function generateRefreshToken(userId: string): string {
  */
 export function verifyToken(token: string): any {
   try {
-    return jwt.verify(token, config.jwt.secret);
+    return jwt.verify(token, config.jwt.secret, { algorithms: ['HS256'] });
   } catch (error) {
     return null;
   }
+}
+
+/**
+ * Verify a token that is being used to authenticate an API/socket request.
+ * Refresh tokens share the signing secret, so they must be rejected here or
+ * they would act as long-lived (7d) access tokens.
+ */
+export function verifyAccessToken(token: string): any {
+  const decoded = verifyToken(token);
+  if (!decoded || decoded.type === 'refresh' || typeof decoded.userId !== 'string') return null;
+  return decoded;
 }
 
 /**

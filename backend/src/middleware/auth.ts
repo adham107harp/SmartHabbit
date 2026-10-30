@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '../utils/auth';
+import { verifyAccessToken } from '../utils/auth';
 
 export interface AuthRequest extends Request {
   userId?: string;
@@ -26,7 +26,7 @@ export function authMiddleware(
     }
 
     const token = authHeader.slice(7);
-    const decoded = verifyToken(token);
+    const decoded = verifyAccessToken(token);
 
     if (!decoded) {
       res.status(401).json({
@@ -60,7 +60,7 @@ export function optionalAuthMiddleware(
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.slice(7);
-      const decoded = verifyToken(token);
+      const decoded = verifyAccessToken(token);
 
       if (decoded) {
         req.userId = decoded.userId;
