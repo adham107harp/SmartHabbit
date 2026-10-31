@@ -8,8 +8,9 @@ Updated each automated run. Tests: Postgres 16 `smarthabbit_test`, run under `TZ
 - Run 1: `GET /users/:id/stats` now requires auth and is owner-only (leaked email/coins).
 - Run 1: GitHub Actions CI (tsc + jest, Postgres 16 service, UTC + Africa/Cairo matrix).
 
+- Run 2: habit-log race fixed: `processHabitCompletion` locks the user row (`FOR UPDATE`) before reading today's progress and uses relative `xp/coins` increments; parallel-request test added (`tests/habit-race.test.ts`, verified failing without the fix).
+
 ## Next (ranked)
-1. **Race: habit log double-awards XP/coins/mystery boxes** (GamificationEngine.processHabitCompletion, StreakService): `SELECT users ... FOR UPDATE` first, relative `xp = xp + $1`, add parallel-request test.
 2. **Challenge reward double payout** (ChallengeService): guard completion UPDATE with `status='joined'` and rowcount; recompute level.
 3. **Migration safety** (database.ts runMigrations): advisory lock + per-file transaction incl. tracking INSERT; numeric sort.
 4. **Docker/compose/nginx**: remove hardcoded JWT/DB secrets (`${VAR:?}`), drop published backend port, restart policy, `init: true`, nginx security headers, drop `null` CORS origin.
@@ -23,6 +24,7 @@ Updated each automated run. Tests: Postgres 16 `smarthabbit_test`, run under `TZ
 12. API docs (OpenAPI), README refresh, frontend polish.
 
 ## Risks / notes
+- Other writers of `users.xp/coins` (BadgeService, ChallengeService, ShopService) take no user-row lock; BadgeService already uses relative increments. Challenge payout (item 2) is next.
 - Test suites share one DB and TRUNCATE in beforeEach, so jest must run serially (`npm test` now uses `--runInBand`; found when CI parallel workers failed). Longer term: per-worker schemas or databases.
 - Admin bootstrap still grants `is_admin` to whoever first registers an allowlisted email (emails unverified). Set `ADMIN_EMAILS` in production and register that account first, or move to DB-only admin grants.
 - Migration 021 only emits a NOTICE (and is still recorded as applied) if case-variant duplicate emails exist; operator must dedupe and create `users_email_lower_key` manually.
