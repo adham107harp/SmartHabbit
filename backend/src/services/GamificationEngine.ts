@@ -84,6 +84,18 @@ export class GamificationEngine {
     client?: PoolClient
   ): Promise<ProcessedHabit> {
     const run = async (q: Querier): Promise<ProcessedHabit> => {
+      // 0. Serialize concurrent completions for this user. Without the row
+      //    lock, two parallel requests both read progressBefore < target and
+      //    both pay out XP/coins (and can both insert a mystery box).
+      const userResult = await q.query(
+        `SELECT xp, level, coins, current_streak,
+                xp_boost_expires_at, coin_boost_expires_at
+           FROM users WHERE id = $1 FOR UPDATE`,
+        [userId]
+      );
+      if (userResult.rows.length === 0) throw new HabitNotFoundError();
+      const user = userResult.rows[0];
+
       // 1. Habit must exist and belong to this user
       const habitResult = await q.query(
         'SELECT * FROM habits WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL',
@@ -111,15 +123,6 @@ export class GamificationEngine {
       const progressAfter = progressBefore + Number(progressValue);
       const justCompleted = progressBefore < targetValue && progressAfter >= targetValue;
 
-      // 3. Current user stats (for streak bonus and boost flags)
-      const userResult = await q.query(
-        `SELECT xp, level, coins, current_streak,
-                xp_boost_expires_at, coin_boost_expires_at
-           FROM users WHERE id = $1`,
-        [userId]
-      );
-      const user = userResult.rows[0];
-
       // 4. XP/coins are only awarded on the log that crosses the target.
       //    Logs that just rack progress (e.g. 1/8, 2/8…) don't pay out.
       //    Keeps the XP economy stable regardless of target size.
@@ -144,19 +147,19 @@ export class GamificationEngine {
       );
 
       // 6. Update user totals (only changes when justCompleted = true)
-      const newXP = user.xp + finalXP;
-      const newCoins = user.coins + finalCoins;
-      const newLevel = this.calculateLevel(newXP);
-      const leveledUp = newLevel > user.level;
-
+      let newLevel = Number(user.level);
       if (finalXP > 0 || finalCoins > 0) {
-        await q.query(
+        const upd = await q.query(
           `UPDATE users
-              SET xp = $1, coins = $2, level = $3, updated_at = NOW()
-            WHERE id = $4`,
-          [newXP, newCoins, newLevel, userId]
+              SET xp = xp + $1, coins = coins + $2, updated_at = NOW()
+            WHERE id = $3
+        RETURNING xp`,
+          [finalXP, finalCoins, userId]
         );
+        newLevel = this.calculateLevel(Number(upd.rows[0].xp));
+        await q.query('UPDATE users SET level = $1 WHERE id = $2', [newLevel, userId]);
       }
+      const leveledUp = newLevel > Number(user.level);
 
       // 7. Mystery box every 10 levels. Idempotent on (user, level).
       let mysteryBoxId: string | null = null;
