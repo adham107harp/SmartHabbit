@@ -642,7 +642,7 @@
       'padding:8px 10px 8px 16px;border-radius:999px;background:rgba(17,24,39,.92);color:#e5e7eb;font:500 12.5px/1.2 system-ui,sans-serif;' +
       'box-shadow:0 8px 30px rgba(0,0,0,.25);max-width:calc(100vw - 24px)}.demo-ribbon strong{color:#fff}' +
       '.demo-ribbon button{border:0;border-radius:999px;padding:6px 12px;background:#fff;color:#111827;font:600 12px system-ui,sans-serif;cursor:pointer}' +
-      '@media(max-width:560px){.demo-ribbon span{font-size:11.5px}}';
+      'body{padding-bottom:64px}@media(max-width:560px){.demo-ribbon span{font-size:11.5px}}';
     document.head.appendChild(css);
     document.body.appendChild(bar);
     // Pre-fill the demo account on the sign-in page.
