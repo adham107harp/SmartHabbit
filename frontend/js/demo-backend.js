@@ -295,8 +295,6 @@
     const t = tokens(u); return ok({ accessToken: t.accessToken, refreshToken: t.refreshToken });
   }, true);
   on('POST', '/auth/logout', () => ok(null, 'Logged out'), true);
-  on('POST', '/auth/forgot-password', () => ok(null, 'If that email exists, a reset link has been sent. (Demo: no email is actually sent.)'), true);
-  on('POST', '/auth/reset-password', () => { throw new HttpError(400, 'Password reset links are disabled in the demo.'); }, true);
 
   // users
   on('GET', '/users/me', ({ me }) => ok({ user: meView(user(me)) }));
@@ -466,9 +464,9 @@
     const f = S.friends.find((x) => x.id === params.id && x.friend_id === me && x.status === 'pending');
     if (!f) throw new HttpError(404, 'Friend request not found');
     if (params.action === 'accept') f.status = 'accepted';
-    else if (params.action === 'reject') S.friends = S.friends.filter((x) => x !== f);
+    else if (params.action === 'decline') S.friends = S.friends.filter((x) => x !== f);
     else throw new HttpError(400, 'Invalid action');
-    return ok(undefined, params.action === 'accept' ? 'Friend request accepted' : 'Friend request rejected');
+    return ok(undefined, params.action === 'accept' ? 'Friend request accepted' : 'Friend request declined');
   });
   on('DELETE', '/friends/:id', ({ me, params }) => {
     S.friends = S.friends.filter((f) => !(f.id === params.id || (otherOf(f, me) === params.id && (f.user_id === me || f.friend_id === me))));

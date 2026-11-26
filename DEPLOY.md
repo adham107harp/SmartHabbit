@@ -106,7 +106,7 @@ The simplest free path is:
 
 ### Step 3 — Frontend on Netlify
 
-1. **Edit `frontend/js/api.js`** — change the `BASE_URL` so it points at your Render URL. Set a `SMARTHABBIT_API_URL` script tag in `index.html` if you'd rather not edit the file:
+1. **Edit [`frontend/js/api.js`](frontend/js/api.js)** — change the `BASE_URL` so it points at your Render URL. Set a `SMARTHABBIT_API_URL` script tag in `index.html` if you'd rather not edit the file:
    ```html
    <script>window.SMARTHABBIT_API_URL = 'https://YOUR-API.onrender.com';</script>
    <script src="js/api.js"></script>
