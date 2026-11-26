@@ -54,3 +54,4 @@ backend/uploads/
 *.tmp
 .tmp/
 
+demo-dist/
