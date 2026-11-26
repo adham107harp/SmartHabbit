@@ -295,8 +295,6 @@
     const t = tokens(u); return ok({ accessToken: t.accessToken, refreshToken: t.refreshToken });
   }, true);
   on('POST', '/auth/logout', () => ok(null, 'Logged out'), true);
-  on('POST', '/auth/forgot-password', () => ok(null, 'If that email exists, a reset link has been sent. (Demo: no email is actually sent.)'), true);
-  on('POST', '/auth/reset-password', () => { throw new HttpError(400, 'Password reset links are disabled in the demo.'); }, true);
 
   // users
   on('GET', '/users/me', ({ me }) => ok({ user: meView(user(me)) }));
@@ -466,9 +464,9 @@
     const f = S.friends.find((x) => x.id === params.id && x.friend_id === me && x.status === 'pending');
     if (!f) throw new HttpError(404, 'Friend request not found');
     if (params.action === 'accept') f.status = 'accepted';
-    else if (params.action === 'reject') S.friends = S.friends.filter((x) => x !== f);
+    else if (params.action === 'decline') S.friends = S.friends.filter((x) => x !== f);
     else throw new HttpError(400, 'Invalid action');
-    return ok(undefined, params.action === 'accept' ? 'Friend request accepted' : 'Friend request rejected');
+    return ok(undefined, params.action === 'accept' ? 'Friend request accepted' : 'Friend request declined');
   });
   on('DELETE', '/friends/:id', ({ me, params }) => {
     S.friends = S.friends.filter((f) => !(f.id === params.id || (otherOf(f, me) === params.id && (f.user_id === me || f.friend_id === me))));
@@ -632,6 +630,8 @@
     location.href = 'login.html';
   };
   function ribbon() {
+    let embedded = false; try { embedded = global.top !== global.self; } catch { embedded = true; }
+    if (embedded) { prefill(); return; } // inside the portfolio's 3D screen, the host shows its own bar
     const bar = document.createElement('div');
     bar.className = 'demo-ribbon';
     bar.innerHTML = '<span><strong>Live demo</strong> · runs entirely in your browser, nothing leaves this device</span>' +
@@ -645,6 +645,9 @@
       'body{padding-bottom:64px}@media(max-width:560px){.demo-ribbon span{font-size:11.5px}}';
     document.head.appendChild(css);
     document.body.appendChild(bar);
+    prefill();
+  }
+  function prefill() {
     // Pre-fill the demo account on the sign-in page.
     if (/login\.html$/.test(location.pathname)) {
       const e = document.querySelector('input[type=email], #email'); const p = document.querySelector('input[type=password], #password');
