@@ -240,7 +240,7 @@ export class SocialService {
   async getWeeklyLeaderboard(limit: number = 100): Promise<any[]> {
     const result = await this.pool.query(
       `SELECT 
-        ROW_NUMBER() OVER (ORDER BY weekly_xp DESC) as rank,
+        ROW_NUMBER() OVER (ORDER BY COALESCE(SUM(hl.xp_earned), 0) DESC) as rank,
         u.id, u.username, u.avatar_url, u.level,
         COALESCE(SUM(hl.xp_earned), 0) as weekly_xp
        FROM users u

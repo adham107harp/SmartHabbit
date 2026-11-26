@@ -46,23 +46,6 @@ router.get('/unread/count', authMiddleware, async (req: AuthRequest, res: Respon
 });
 
 /**
- * PUT /api/notifications/:id/read - Mark as read (must own the notification).
- */
-router.put('/:id/read', authMiddleware, async (req: AuthRequest, res: Response) => {
-  try {
-    const ok = await notificationService.markAsRead(req.params.id, req.userId!);
-    if (!ok) {
-      res.status(404).json({ success: false, code: 'NOTIFICATION_NOT_FOUND', message: 'Notification not found.' });
-      return;
-    }
-    res.json({ success: true, message: 'Notification marked as read' });
-  } catch (error) {
-    console.error('Mark as read error:', error);
-    res.status(500).json({ success: false, message: 'Failed to mark as read' });
-  }
-});
-
-/**
  * PUT /api/notifications/mark-all-read - Mark all as read
  */
 router.put('/mark-all/read', authMiddleware, async (req: AuthRequest, res: Response) => {
@@ -77,6 +60,23 @@ router.put('/mark-all/read', authMiddleware, async (req: AuthRequest, res: Respo
   } catch (error) {
     console.error('Mark all as read error:', error);
     res.status(500).json({ success: false, message: 'Failed to mark all as read' });
+  }
+});
+
+/**
+ * PUT /api/notifications/:id/read - Mark as read (must own the notification).
+ */
+router.put('/:id/read', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const ok = await notificationService.markAsRead(req.params.id, req.userId!);
+    if (!ok) {
+      res.status(404).json({ success: false, code: 'NOTIFICATION_NOT_FOUND', message: 'Notification not found.' });
+      return;
+    }
+    res.json({ success: true, message: 'Notification marked as read' });
+  } catch (error) {
+    console.error('Mark as read error:', error);
+    res.status(500).json({ success: false, message: 'Failed to mark as read' });
   }
 });
 
