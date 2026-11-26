@@ -632,6 +632,8 @@
     location.href = 'login.html';
   };
   function ribbon() {
+    let embedded = false; try { embedded = global.top !== global.self; } catch { embedded = true; }
+    if (embedded) { prefill(); return; } // inside the portfolio's 3D screen, the host shows its own bar
     const bar = document.createElement('div');
     bar.className = 'demo-ribbon';
     bar.innerHTML = '<span><strong>Live demo</strong> · runs entirely in your browser, nothing leaves this device</span>' +
@@ -645,6 +647,9 @@
       'body{padding-bottom:64px}@media(max-width:560px){.demo-ribbon span{font-size:11.5px}}';
     document.head.appendChild(css);
     document.body.appendChild(bar);
+    prefill();
+  }
+  function prefill() {
     // Pre-fill the demo account on the sign-in page.
     if (/login\.html$/.test(location.pathname)) {
       const e = document.querySelector('input[type=email], #email'); const p = document.querySelector('input[type=password], #password');
