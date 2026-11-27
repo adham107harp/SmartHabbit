@@ -4,7 +4,7 @@ A gamified habit-tracking web app. Build daily habits, earn XP, level up, unlock
 
 This is a university project. The whole thing — backend and frontend — runs locally with a PostgreSQL database.
 
-**[Try the live demo →](https://adham107harp.github.io/smarthabbit/)** — sign in with the pre-filled demo account, or register your own.
+**[Try the live demo →](https://adham-harp.github.io/smarthabbit/)** — sign in with the pre-filled demo account, or register your own.
 The demo is the real frontend running against an in-browser copy of the API (`frontend/js/demo-backend.js`) that follows the same rules (XP, streaks, badges, challenges, shop, chat). Data stays in your browser; "Reset demo" starts over. Build it with `scripts/build-demo.sh`.
 
 ## What's inside
